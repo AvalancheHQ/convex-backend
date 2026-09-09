@@ -6,6 +6,10 @@
 </picture>
 </p>
 
+<p align="center">
+<a href="https://app.codspeed.io/AvalancheHQ/convex-backend?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
+</p>
+
 [Convex](https://convex.dev) is the open-source reactive database designed to
 make life easy for web app developers, whether human or LLM. Fetch data and
 perform business logic with strong consistency by writing pure TypeScript.

@@ -1,0 +1,69 @@
+name: CodSpeed Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # `workflow_dispatch` allows CodSpeed to trigger backtest performance
+  # analysis in order to generate initial data.
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write # for OpenID Connect authentication with CodSpeed
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  # Benchmarked packages. The remaining `benches/` targets depend on internal
+  # test helpers (`common::testing`) or datasets that are not part of the open
+  # source repository.
+  BENCH_PACKAGES: -p value -p packed_value -p interval_map
+  CARGO_CODSPEED_VERSION: 5.0.1
+
+jobs:
+  benchmarks:
+    name: Run benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler pkg-config libssl-dev
+
+      - name: Install Rust
+        uses: dsherret/rust-toolchain-file@3551321aa44dd44a0393eb3b6bdfbc5d25ecf621 # v1
+
+      - name: Cache cargo registry and build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-targets: true
+          shared-key: codspeed
+
+      - name: Install cargo-codspeed
+        run: |
+          curl -fsSL \
+            "https://github.com/CodSpeedHQ/codspeed-rust/releases/download/v${CARGO_CODSPEED_VERSION}/cargo-codspeed-x86_64-unknown-linux-musl" \
+            -o "$HOME/.cargo/bin/cargo-codspeed"
+          chmod +x "$HOME/.cargo/bin/cargo-codspeed"
+
+      - name: Build the benchmarks
+        run:
+          cargo codspeed build --locked --measurement-mode simulation
+          $BENCH_PACKAGES
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@373d6868929f444bc08d901fd0eb0ad52a8875ea # v5.2.1
+        with:
+          mode: simulation
+          run: cargo codspeed run ${{ env.BENCH_PACKAGES }}
