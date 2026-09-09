@@ -20,9 +20,8 @@ use packed_value::{
 };
 use serde_json::Value as JsonValue;
 use value::{
-    assert_obj,
-    assert_val,
     id_v6::DeveloperDocumentId,
+    obj,
     val,
     ConvexValue,
     FieldName,
@@ -69,12 +68,12 @@ fn benchmark_values() -> anyhow::Result<Vec<(&'static str, ConvexValue)>> {
         bytes_512k.extend(&bytes_short[..]);
     }
 
-    let document = assert_obj!(
+    let document = obj!(
         "_id" => idv6,
         "_creationTime" => 1669665839541.7861,
         "numVotes" => 10.,
         "author" => "Peter",
-    );
+    )?;
 
     let mut large_object = BTreeMap::new();
     for i in 0..124 {
@@ -94,8 +93,8 @@ fn benchmark_values() -> anyhow::Result<Vec<(&'static str, ConvexValue)>> {
         ("string-512k", val!(string_512k)),
         ("bytes-short", val!(bytes_short)),
         ("bytes-512k", val!(bytes_512k)),
-        ("array-4-ints", assert_val!([1, 2, 3, 4])),
-        ("array-4-mixed", assert_val!([null, 1, 2., "three"])),
+        ("array-4-ints", val!([1, 2, 3, 4])),
+        ("array-4-mixed", val!([null, 1, 2., "three"])),
         ("object-document", ConvexValue::Object(document)),
         ("object-1024", ConvexValue::Object(large_object.try_into()?)),
     ];
