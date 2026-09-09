@@ -56,7 +56,6 @@ jobs:
             "https://github.com/CodSpeedHQ/codspeed-rust/releases/download/v${CARGO_CODSPEED_VERSION}/cargo-codspeed-x86_64-unknown-linux-musl" \
             -o "$HOME/.cargo/bin/cargo-codspeed"
           chmod +x "$HOME/.cargo/bin/cargo-codspeed"
-          cargo codspeed --version
 
       - name: Build the benchmarks
         run:
